@@ -13,19 +13,19 @@
  * This source file is part of OGRE
  *     (Object-oriented Graphics Rendering Engine)
  * For the latest info, see http://www.ogre3d.org/
- * 
+ *
  * Copyright (c) 2000-2011 Torus Knot Software Ltd
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -109,9 +109,10 @@ struct WTimer::TimerInt {
 	DWORD_PTR mTimerMask;
 };
 
-WTimer::WTimer() : mTimerMask(0)
+WTimer::WTimer()
 {
 	timer = new TimerInt;
+	timer->mTimerMask = 0;
 	reset();
 }
 
@@ -156,7 +157,7 @@ void WTimer::reset() {
 	timer->mZeroClock = clock();
 }
 
-unsigned long Timer::getMilliseconds() {
+unsigned long WTimer::getMilliseconds() {
     LARGE_INTEGER curTime;
 
 	HANDLE thread = GetCurrentThread();
@@ -171,7 +172,7 @@ unsigned long Timer::getMilliseconds() {
 	SetThreadAffinityMask(thread, oldMask);
 
     LONGLONG newTime = curTime.QuadPart - timer->mStartTime.QuadPart;
-    
+
     // scale by 1000 for milliseconds
     unsigned long newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
 
@@ -195,7 +196,7 @@ unsigned long Timer::getMilliseconds() {
     return newTicks;
 }
 
-unsigned long Timer::getMicroseconds() {
+unsigned long WTimer::getMicroseconds() {
     LARGE_INTEGER curTime;
 
 	HANDLE thread = GetCurrentThread();
@@ -210,10 +211,10 @@ unsigned long Timer::getMicroseconds() {
 	SetThreadAffinityMask(thread, oldMask);
 
 	LONGLONG newTime = curTime.QuadPart - timer->mStartTime.QuadPart;
-    
+
     // get milliseconds to check against GetTickCount
     unsigned long newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
-    
+
     // detect and compensate for performance counter leaps
     // (surprisingly common, see Microsoft KB: Q274323)
     unsigned long check = GetTickCount() - timer->mStartTick;
@@ -235,12 +236,12 @@ unsigned long Timer::getMicroseconds() {
     return newMicro;
 }
 
-unsigned long Timer::getMillisecondsCPU() {
+unsigned long WTimer::getMillisecondsCPU() {
 	clock_t newClock = clock();
 	return (unsigned long)( (float)( newClock - timer->mZeroClock ) / ( (float)CLOCKS_PER_SEC / 1000.0 ) ) ;
 }
 
-unsigned long Timer::getMicrosecondsCPU() {
+unsigned long WTimer::getMicrosecondsCPU() {
 	clock_t newClock = clock();
 	return (unsigned long)( (float)( newClock - timer->mZeroClock ) / ( (float)CLOCKS_PER_SEC / 1000000.0 ) ) ;
 }
