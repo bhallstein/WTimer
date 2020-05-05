@@ -109,9 +109,10 @@ struct WTimer::TimerInt {
 	DWORD_PTR mTimerMask;
 };
 
-WTimer::WTimer() : mTimerMask(0)
+WTimer::WTimer()
 {
 	timer = new TimerInt;
+	timer->mTimerMask = 0;
 	reset();
 }
 
@@ -121,7 +122,7 @@ WTimer::~WTimer()
 }
 
 void WTimer::reset() {
-    // Get the current process core mask
+	// Get the current process core mask
 	DWORD_PTR procMask;
 	DWORD_PTR sysMask;
 	GetProcessAffinityMask(GetCurrentProcess(), &procMask, &sysMask);
@@ -136,9 +137,9 @@ void WTimer::reset() {
 		while((timer->mTimerMask & procMask) == 0)
 			timer->mTimerMask <<= 1;
 	}
-
+	
 	HANDLE thread = GetCurrentThread();
-
+	
 	// Set affinity to the first core
 	DWORD_PTR oldMask = SetThreadAffinityMask(thread, timer->mTimerMask);
 
@@ -156,8 +157,8 @@ void WTimer::reset() {
 	timer->mZeroClock = clock();
 }
 
-unsigned long Timer::getMilliseconds() {
-    LARGE_INTEGER curTime;
+unsigned long WTimer::getMilliseconds() {
+	LARGE_INTEGER curTime;
 
 	HANDLE thread = GetCurrentThread();
 
@@ -169,34 +170,33 @@ unsigned long Timer::getMilliseconds() {
 
 	// Reset affinity
 	SetThreadAffinityMask(thread, oldMask);
-
-    LONGLONG newTime = curTime.QuadPart - timer->mStartTime.QuadPart;
+	
+	LONGLONG newTime = curTime.QuadPart - timer->mStartTime.QuadPart;
     
-    // scale by 1000 for milliseconds
-    unsigned long newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
+	// scale by 1000 for milliseconds
+	unsigned long newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
 
-    // detect and compensate for performance counter leaps
-    // (surprisingly common, see Microsoft KB: Q274323)
-    unsigned long check = GetTickCount() - timer->mStartTick;
-    signed long msecOff = (signed long)(newTicks - check);
-    if (msecOff < -100 || msecOff > 100) {
-        // We must keep the timer running forward :)
-        LONGLONG adjust = (std::min)(msecOff * timer->mFrequency.QuadPart / 1000, newTime - timer->mLastTime);
-        timer->mStartTime.QuadPart += adjust;
-        newTime -= adjust;
+	// detect and compensate for performance counter leaps
+	// (surprisingly common, see Microsoft KB: Q274323)
+	unsigned long check = GetTickCount() - timer->mStartTick;
+	signed long msecOff = (signed long)(newTicks - check);
+	if (msecOff < -100 || msecOff > 100) {
+		// We must keep the timer running forward :)
+		LONGLONG adjust = (std::min)(msecOff * timer->mFrequency.QuadPart / 1000, newTime - timer->mLastTime);
+		timer->mStartTime.QuadPart += adjust;
+		newTime -= adjust;
 
-        // Re-calculate milliseconds
-        newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
-    }
+		// Re-calculate milliseconds
+		newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
+	}
 
-    // Record last time for adjust
+	// Record last time for adjust
 	timer->mLastTime = newTime;
-
-    return newTicks;
+	return newTicks;
 }
 
-unsigned long Timer::getMicroseconds() {
-    LARGE_INTEGER curTime;
+unsigned long WTimer::getMicroseconds() {
+	LARGE_INTEGER curTime;
 
 	HANDLE thread = GetCurrentThread();
 
@@ -210,37 +210,36 @@ unsigned long Timer::getMicroseconds() {
 	SetThreadAffinityMask(thread, oldMask);
 
 	LONGLONG newTime = curTime.QuadPart - timer->mStartTime.QuadPart;
-    
-    // get milliseconds to check against GetTickCount
-    unsigned long newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
-    
-    // detect and compensate for performance counter leaps
-    // (surprisingly common, see Microsoft KB: Q274323)
-    unsigned long check = GetTickCount() - timer->mStartTick;
-    signed long msecOff = (signed long)(newTicks - check);
-    if (msecOff < -100 || msecOff > 100)
-    {
-        // We must keep the timer running forward :)
-        LONGLONG adjust = (std::min)(msecOff * timer->mFrequency.QuadPart / 1000, newTime - timer->mLastTime);
-        timer->mStartTime.QuadPart += adjust;
-        newTime -= adjust;
-    }
 
-    // Record last time for adjust
-    timer->mLastTime = newTime;
+	// get milliseconds to check against GetTickCount
+	unsigned long newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
 
-    // scale by 1000000 for microseconds
-    unsigned long newMicro = (unsigned long) (1000000 * newTime / timer->mFrequency.QuadPart);
+	// detect and compensate for performance counter leaps
+	// (surprisingly common, see Microsoft KB: Q274323)
+	unsigned long check = GetTickCount() - timer->mStartTick;
+	signed long msecOff = (signed long)(newTicks - check);
+	if (msecOff < -100 || msecOff > 100) {
+		// We must keep the timer running forward :
+		LONGLONG adjust = (std::min)(msecOff * timer->mFrequency.QuadPart / 1000, newTime - timer->mLastTime);
+		timer->mStartTime.QuadPart += adjust;
+		newTime -= adjust;
+	}
 
-    return newMicro;
+	// Record last time for adjust
+	timer->mLastTime = newTime;
+
+	// scale by 1000000 for microseconds
+	unsigned long newMicro = (unsigned long) (1000000 * newTime / timer->mFrequency.QuadPart);
+
+	return newMicro;
 }
 
-unsigned long Timer::getMillisecondsCPU() {
+unsigned long WTimer::getMillisecondsCPU() {
 	clock_t newClock = clock();
 	return (unsigned long)( (float)( newClock - timer->mZeroClock ) / ( (float)CLOCKS_PER_SEC / 1000.0 ) ) ;
 }
 
-unsigned long Timer::getMicrosecondsCPU() {
+unsigned long WTimer::getMicrosecondsCPU() {
 	clock_t newClock = clock();
 	return (unsigned long)( (float)( newClock - timer->mZeroClock ) / ( (float)CLOCKS_PER_SEC / 1000000.0 ) ) ;
 }
