@@ -1,0 +1,13 @@
+
+clang++ \
+  -std=c++11 \
+	-I ../../Diatom \
+	../../Diatom/Diatom.cpp \
+	../../Diatom/Diatom-Storage.cpp \
+	-I ../../WTimer \
+	-I ../../C++\ Containers \
+	-I ../../C++\ Containers/ChunkVector \
+	../../WTimer/WTimer.cpp \
+	test.cpp \
+	WLayout.cpp \
+	# -o new

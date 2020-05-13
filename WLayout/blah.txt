@@ -1,0 +1,49 @@
+
+
+Messenger
+
+- Dispatch system that works with W's events and the prospective WView system
+- Uses WCallbacks, or llambdas?
+	- The same problem exists with llambdas, i.e. how to use multiple 
+
+
+
+Layout system
+- based on Diatoms
+- a list of elements and a flow of information representing the layout
+- an item in the information flow consists of:
+	 source -> rule -> destination
+
+	 	- source:      an element or set of elements
+		- rule:        a property/set of properties of the element(s)
+		               and a transformation
+		- destination: another element
+
+- they form a network that's processed in order
+- every view in the resulitng layout should end up with the necessary positioning information:
+		- x, y, w, h
+
+layout:
+	intrinsics:
+		A:
+			w: 20
+			h: 40
+		B:
+			x: 0
+			y: 0
+
+	rules:
+		A:
+			x: B.x + 10
+			y: B.y + 10
+		B:
+			w: container.w
+			h: container.h / 2
+
+
+Problem: account for runtime changes (image/text sizes, user moving things around, animations, etc)
+- What we DON'T want to do: increase the scope of the project to image loading, text layout, etc.
+- Instead, the run time should allow for modifying intrinsics
+- 
+
+

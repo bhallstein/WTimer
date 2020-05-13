@@ -1,0 +1,32 @@
+elements:
+	A:
+		B:
+		E:
+		C:
+			D:
+			F:
+rules:
+	A.x: "0"
+	A.y: "0"
+	A.w: "100"
+	A.h: "100"
+	B.x: "10"
+	B.y: "10"
+	B.w: "40"
+	B.h: "20"
+	E.x: "A.w - 50"
+	E.w: "B.w"
+	E.h: "B.h"
+	E.y: "B.y"
+	C.x: "10"
+	C.y: "40"
+	C.w: "80"
+	C.h: "50"
+	D.w: "8"
+	D.h: "C.h - 6"
+	D.x: "72"
+	D.y: "C.y + 3"
+	F.x: "10"
+	F.w: "C.w - 8"
+	F.h: "C.h"
+	F.y: "C.y + 6 - C.w"
