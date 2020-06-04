@@ -137,9 +137,9 @@ void WTimer::reset() {
 		while((timer->mTimerMask & procMask) == 0)
 			timer->mTimerMask <<= 1;
 	}
-	
+
 	HANDLE thread = GetCurrentThread();
-	
+
 	// Set affinity to the first core
 	DWORD_PTR oldMask = SetThreadAffinityMask(thread, timer->mTimerMask);
 
@@ -170,9 +170,9 @@ unsigned long WTimer::getMilliseconds() {
 
 	// Reset affinity
 	SetThreadAffinityMask(thread, oldMask);
-	
+
 	LONGLONG newTime = curTime.QuadPart - timer->mStartTime.QuadPart;
-    
+
 	// scale by 1000 for milliseconds
 	unsigned long newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
 
@@ -189,6 +189,9 @@ unsigned long WTimer::getMilliseconds() {
 		// Re-calculate milliseconds
 		newTicks = (unsigned long) (1000 * newTime / timer->mFrequency.QuadPart);
 	}
+
+	// Record last time for adjust
+	timer->mLastTime = newTime;
 
 	// Record last time for adjust
 	timer->mLastTime = newTime;
@@ -219,7 +222,7 @@ unsigned long WTimer::getMicroseconds() {
 	unsigned long check = GetTickCount() - timer->mStartTick;
 	signed long msecOff = (signed long)(newTicks - check);
 	if (msecOff < -100 || msecOff > 100) {
-		// We must keep the timer running forward :
+		// We must keep the timer running forward :)
 		LONGLONG adjust = (std::min)(msecOff * timer->mFrequency.QuadPart / 1000, newTime - timer->mLastTime);
 		timer->mStartTime.QuadPart += adjust;
 		newTime -= adjust;
@@ -245,3 +248,4 @@ unsigned long WTimer::getMicrosecondsCPU() {
 }
 
 #endif
+
