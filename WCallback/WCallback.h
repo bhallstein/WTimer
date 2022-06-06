@@ -38,7 +38,6 @@
 #ifndef __WCallback
 #define __WCallback
 
-
 template<class TRet, class TParam>
 class WCallback {
 public:

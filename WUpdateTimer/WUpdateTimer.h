@@ -1,40 +1,49 @@
-/*
- * WUpdateTimer.h
- *
- * Simple cross-platform callback timer
- *
- * Extracted from legacy W library, modified & made standalone on 2016.4.23
- * by Ben Hallstein
- *
- */
-
-
 #ifndef __W__UpdateTimer
 #define __W__UpdateTimer
 
-class WUpdateTimer {
+#include "WCallback.h"
+
+struct WUpdateTimer {
 	typedef void (*vdfncb)(void);
-public:
+
 	WUpdateTimer(vdfncb _fp);
 	~WUpdateTimer();
-	
-	void start(float interval_s);
+
+	void start(float interval_s);  // NB: interval is only honoured on OS X
 	void stop();
-		// NB: interval is only honoured on OS X
-	
+
+	struct Objs;
+	struct Init;
+
 private:
 	void createTimer();
 	void destroyTimer();
-	
+
 	bool running;
-	
-	struct Objs;
+
 	Objs *objs;
-	
-	struct Init;
 	static Init *init;
-	
+
 	void (*fp)(void);
 };
 
+struct WUpdateTimer_Callback {
+	typedef WCallback<void, int> callback;
+
+	WUpdateTimer_Callback(callback *_cb);
+	~WUpdateTimer_Callback();
+
+	void start(float interval_s);  // NB: interval is only honoured on OS X
+	void stop();
+
+private:
+	void createTimer();
+	void destroyTimer();
+
+	callback *cb;
+	bool running;
+	WUpdateTimer::Objs *objs;
+};
+
 #endif
+

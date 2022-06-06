@@ -28,13 +28,26 @@
 
 
 WUpdateTimer::WUpdateTimer(vdfncb _fp) :
-	objs(NULL),
-	running(false),
-	fp(_fp)
+objs(NULL),
+running(false),
+fp(_fp)
 {
 	createTimer();
 }
 WUpdateTimer::~WUpdateTimer()
+{
+	destroyTimer();
+}
+
+
+WUpdateTimer_Callback::WUpdateTimer_Callback(WCallback<void, int> *_cb) :
+objs(NULL),
+running(false),
+cb(_cb)
+{
+	createTimer();
+}
+WUpdateTimer_Callback::~WUpdateTimer_Callback()
 {
 	destroyTimer();
 }
@@ -48,9 +61,9 @@ WUpdateTimer::~WUpdateTimer()
 #pragma mark - Mac/iOS impl
 
 #ifdef WTARGET_MAC
-	#include "WUpdateTimer_OSX.h"
+#include "WUpdateTimer_OSX.h"
 #else
-	#include "WUpdateTimer_iOS.h"
+#include "WUpdateTimer_iOS.h"
 #endif
 
 struct WUpdateTimer::Objs {
@@ -62,7 +75,7 @@ void WUpdateTimer::createTimer() {
 		return;
 	}
 	objs = new Objs;
-	objs->timer = [[W_UpdateTimer alloc] initWithCallback:fp];
+	objs->timer = [[W_UpdateTimer alloc] initWithFunc:fp];
 }
 void WUpdateTimer::destroyTimer() {
 	if (objs) {
@@ -72,6 +85,22 @@ void WUpdateTimer::destroyTimer() {
 }
 void WUpdateTimer::start(float interval) { [objs->timer start:interval]; }
 void WUpdateTimer::stop() { [objs->timer stop]; }
+
+void WUpdateTimer_Callback::createTimer() {
+	if (objs) {
+		return;
+	}
+	objs = new WUpdateTimer::Objs;
+	objs->timer = [[W_UpdateTimer alloc] initWithCallback:cb];
+}
+void WUpdateTimer_Callback::destroyTimer() {
+	if (objs) {
+		delete objs;
+		objs = NULL;
+	}
+}
+void WUpdateTimer_Callback::start(float interval) { [objs->timer start:interval]; }
+void WUpdateTimer_Callback::stop() { [objs->timer stop]; }
 
 
 
@@ -126,3 +155,4 @@ void WUpdateTimer::stop() {
 }
 
 #endif
+
